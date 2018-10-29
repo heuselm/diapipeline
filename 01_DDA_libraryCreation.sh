@@ -26,8 +26,8 @@ docker rm ddalibcreate
 docker rm openswath
 
 # spawn containers on host machine
-docker run -u 0 -dit --name ddalibcreate -v /media/sf_D_DRIVE/DataAnalysis/SwathPipeline/:/data biocontainers/dia-umpire
-docker run -u 0 -dit --name openswath -v /media/sf_D_DRIVE/DataAnalysis/SwathPipeline/:/data openswath/openswath:0.1.2
+docker run -u 0 -dit --name ddalibcreate -v $PWD/:/data biocontainers/dia-umpire
+docker run -u 0 -dit --name openswath -v $PWD/:/data openswath/openswath:0.1.2
 
 # say hello!
 docker exec ddalibcreate echo hi there, ddalibcreate container is happy and alive
