@@ -44,6 +44,7 @@ docker exec openswath echo hi there, openswath container is happy and alive
 # Pyprophet has a problem with that TODO contact GR
 ###########################################################
 docker attach openswath
+cd data/
 
 # OpenSwathWorkflow
 mkdir /data/results/openswath
@@ -56,7 +57,6 @@ OpenSwathWorkflow \
 -min_upper_edge_dist 1 \
 -batchSize 1000 \
 -out_osw /data/results/openswath/$bname.osw \
--out_tsv /data/results/openswath/$bname.tsv \
 -Scoring:stop_report_after_feature 5 \
 -rt_extraction_window 600 \
 -mz_extraction_window 30 \
