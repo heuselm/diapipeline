@@ -22,12 +22,14 @@ docker pull openswath/openswath:0.1.2
 
 # remove containers that may exist in these names
 # watch out, modifications made inside these containers will be lost!
+docker stop ddalibcreate
+docker stop openswath
 docker rm ddalibcreate
 docker rm openswath
 
 # spawn containers on host machine
-docker run -u 0 -dit --name ddalibcreate -v /media/sf_D_DRIVE/DataAnalysis/SwathPipeline/:/data biocontainers/dia-umpire
-docker run -u 0 -dit --name openswath -v /media/sf_D_DRIVE/DataAnalysis/SwathPipeline/:/data openswath/openswath:0.1.2
+docker run -u 0 -dit --name ddalibcreate -v $PWD/:/data biocontainers/dia-umpire
+docker run -u 0 -dit --name openswath -v $PWD/:/data openswath/openswath:0.1.2
 
 # say hello!
 docker exec ddalibcreate echo hi there, ddalibcreate container is happy and alive
@@ -44,11 +46,10 @@ docker exec openswath echo hi there, openswath container is happy and alive
 # Pyprophet has a problem with that TODO contact GR
 ###########################################################
 docker attach openswath
-cd data/
 
 # OpenSwathWorkflow
 mkdir /data/results/openswath
-for file in data_dia/*ML; do \
+for file in /data/data_dia/*ML; do \
 bname=$(echo ${file##*/} | cut -f 1 -d '.'); \
 OpenSwathWorkflow \
 -in /data/data_dia/$bname.mzXML \
@@ -75,8 +76,8 @@ OpenSwathWorkflow \
 # Error models are learned and applied on precursor, peptide and protein level
 ##############################################################################
 # create result folders
-mkdir results/pyprophet
-mkdir results/pyprophet/jumbomodel
+mkdir /data/results/pyprophet
+mkdir /data/results/pyprophet/jumbomodel
 
 # Train Model: Subsample over all runs and create jumbo model
 ################################################
