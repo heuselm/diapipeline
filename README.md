@@ -31,5 +31,7 @@ Targeted analysis of DIA mass spectrometry data
 
 loading spectra -> good. Anything else -> not good.
 
+1.6 Check output in results/library!
+
 Inspired by & thanks to http://openswath.org/en/latest/docs/docker.html
 & https://github.com/OpenSWATH/workflows
