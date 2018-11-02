@@ -33,19 +33,23 @@ docker run -u 0 -dit --name openswath -v $PWD/:/data openswath/openswath:0.1.2
 docker exec ddalibcreate echo hi there, ddalibcreate container is happy and alive
 docker exec openswath echo hi there, openswath container is happy and alive
 
+# Local Fix 1:
+docker exec ddalibcreate gunzip /data/data_dda/*.gz
+# Local Fix 2: pre-run sed -i 's/DECOY/DECOY_/g' data_library/library_fwd_with_decoys.fasta
+# Local Fix 3: Open permissions inside diau/libcreate container
+docker exec ddalibcreate chmod 777 /usr/local/tpp/bin/*
+
 # STEP 1: DDALIBCREATE:
 # DDA search to create sample-specific library
 ##############################################
 mkdir results
 mkdir results/library
-for file in data_dda/*.mzXML; do \
+for file in data_dda/*; do \
 docker exec ddalibcreate comet -Pparams/comet.params $file ;done
 
 # copy result files to result folder
-for file in data_dda/*pep.xml; do \
-bname=$(echo ${file##*/} | cut -f 1 -d '.') && \
-mv data_dda/$bname.pep.xml results/library && \
-mv data_dda/$bname.txt results/library ; done
+mv data_dda/*.pep.xml results/library
+mv data_dda/*.txt results/library
 
 # run tpp peptideprophet per each DDA MSrun
 for file in results/library/*pep.xml; do \
@@ -124,7 +128,10 @@ docker exec openswath TargetedFileConverter \
 # And for easy vieweing and processing in other tools to tsv
 docker exec openswath TargetedFileConverter \
 -in /data/results/library/SSLibrary_target_decoy.TraML \
--out /data/results/library/SSLibrary_target_decoy.tsv
+-out /data/results/library/SSLibrary_target_decoy.tsv 
+
+# Make results open access
+docker exec openswath chmod -R 777 /data/results
 
 # done
 echo "done"
