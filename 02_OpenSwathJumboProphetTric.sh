@@ -93,12 +93,16 @@ pyprophet export --in=/data/results/pyprophet/jumbomodel/subsampled.osw \
 # Apply: Score all runs using the jumbo model
 ################################################
 pyprophet merge --out=/data/results/pyprophet/allruns.osw \
---subsample_ratio=1 /data/results/openswath/collinsb*.osw
+--subsample_ratio=1 /data/results/openswath/*.osw
 pyprophet score --threads 4 --in=/data/results/pyprophet/allruns.osw \
+--apply_weights=/data/results/pyprophet/jumbomodel/subsampled.osw \
 --level=ms1ms2
 
 pyprophet export --in=/data/results/pyprophet/allruns.osw \
---out=/data/results/pyprophet/allruns.tsv --format=legacy_merged \
+--out=/data/results/pyprophet/allruns.tsv \
+--max_global_peptide_qvalue=1 \
+--max_global_protein_qvalue=1 \
+--format=legacy_merged \
 --no-ipf
 
 # Create statistical models on peptide and protein level and over
@@ -109,7 +113,10 @@ peptide --in=/data/results/pyprophet/allruns.osw --context=experiment-wide \
 peptide --in=/data/results/pyprophet/allruns.osw --context=global \
 
 pyprophet export --in=/data/results/pyprophet/allruns.osw \
---out=/data/results/pyprophet/allruns_pepQvals.tsv --format=legacy_merged \
+--out=/data/results/pyprophet/allruns_pepQvals.tsv \
+--max_global_peptide_qvalue=1 \
+--max_global_protein_qvalue=1 \
+--format=legacy_merged \
 --no-ipf
 
 pyprophet \
@@ -118,11 +125,15 @@ protein --in=/data/results/pyprophet/allruns.osw --context=experiment-wide \
 protein --in=/data/results/pyprophet/allruns.osw --context=global \
 
 pyprophet export --in=/data/results/pyprophet/allruns.osw \
---out=/data/results/pyprophet/allruns_pepQvals_protQvals.tsv --format=legacy_merged \
+--out=/data/results/pyprophet/allruns_pepQvals_protQvals.tsv \
+--max_global_peptide_qvalue=1 \
+--max_global_protein_qvalue=1 \
+--format=legacy_merged \
 --no-ipf
 
 pyprophet export --in=/data/results/pyprophet/allruns.osw \
---out=/data/results/pyprophet/allruns_pepQvals_protQvals_matrix.tsv --format=matrix \
+--out=/data/results/pyprophet/allruns_pepQvals_protQvals_matrix.tsv \
+--format=matrix \
 --no-ipf
 
 # export scoring pdf
@@ -130,20 +141,21 @@ pyprophet export \
 --in=/data/results/pyprophet/allruns.osw \
 --format=score_plots
 
-# TRIC
-# Feature Alignment based on nonlinear RT alignment
+# OPTIONAL: TRIC Alignment of peak groups #
+###########################################
+# Nonlinear RT alignment
+mkdir /data/results/TRIC
 feature_alignment.py \
 --in /data/results/pyprophet/allruns_pepQvals_protQvals.tsv \
---out /data/results/pyprophet/feature_alignment.tsv \
---out_matrix /data/results/pyprophet/feature_alignment_matrix.tsv \
+--out /data/results/TRIC/feature_alignment.tsv \
+--out_matrix /data/results/TRIC/feature_alignment_matrix.tsv \
 --method LocalMST \
 --realign_method lowess \
 --max_rt_diff 60 \
 --mst:useRTCorrection True \
 --mst:Stdev_multiplier 3.0 \
 --target_fdr 0.01 \
---fdr_cutoff 0.01 \
---max_fdr_quality 0.05
+--fdr_cutoff 0.01
 
 exit
 
