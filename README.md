@@ -6,11 +6,11 @@ Targeted analysis of DIA mass spectrometry data
 - e.g. https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-16-04#step-1-%E2%80%94-installing-docker
 
 check if it's working..
-´´´docker run hello-world´´´
+```docker run hello-world```
 
 get the containerized tools
-´´´docker pull biocontainers/diau-umpire´´´
-´´´docker pull openswath/openswath:0.1.2´´´
+```docker pull biocontainers/diau-umpire```
+```docker pull openswath/openswath:0.1.2```
 
 # Step 01: Build peptide query parameter library from DDA-MS files (mzXML), script 01_DDA_libraryCreation.sh
 
