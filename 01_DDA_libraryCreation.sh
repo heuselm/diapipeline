@@ -17,9 +17,9 @@ docker pull openswath/openswath:0.1.2
 
 # remove containers that may exist in these names
 # watch out, modifications made inside these containers will be lost!
-docker stop ddalibcreate
-docker stop openswath
-docker rm ddalibcreate
+docker stop ddalibcreate && \
+docker stop openswath && \
+docker rm ddalibcreate && \
 docker rm openswath
 
 # spawn containers on host machine
@@ -33,6 +33,12 @@ docker exec openswath echo hi there, openswath container is happy and alive
 # STEP 1: DDALIBCREATE:
 # DDA search to create sample-specific library
 ##############################################
+# Make decoy fasta database
+docker exec ddalibcreate subsetdb -R -DDECOY_ data_library/library_fwd.fasta && \
+cat data_library/library_fwd.fasta library_fwd.fasta.new > data_library/library_fwd_with_decoys.fasta &&\
+chmod 777 data_library/library_fwd_with_decoys.fasta
+
+# Search via Comet
 mkdir results
 mkdir results/library
 for file in data_dda/*.mzXML; do \
