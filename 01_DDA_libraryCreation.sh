@@ -1,10 +1,5 @@
 #!/bin/bash
 
-# DIA proteomics pipeline script
-# modified from C Karlsson's script, 26.10.2018
-# mhe 27.10.2018
-###############################################
-
 # log
 # touch current_log.txt
 # echo swath analysis log > current_log.txt
@@ -22,6 +17,8 @@ docker pull openswath/openswath:0.1.2
 
 # remove containers that may exist in these names
 # watch out, modifications made inside these containers will be lost!
+docker stop ddalibcreate
+docker stop openswath
 docker rm ddalibcreate
 docker rm openswath
 
@@ -100,17 +97,75 @@ docker exec ddalibcreate spectrast -cNresults/library/SpectrastStep2_consensus \
 # -s b,y -w/data/data_library/swathwindows_64vw_human.txt -o 4 -n 6  \
 # -a /data/results/library/sslib.tsv /data/results/library/SpectrastStep2.sptxt
 
+# Generate different flavors of the Library.. (optimized for DIANN)
+docker exec openswath OpenSwathAssayGenerator \
+-in /data/results/library/SpectrastStep2_consensus.mrm \
+-swath_windows_file /data/data_library/swathwindows.txt \
+-precursor_lower_mz_limit 350 \
+-precursor_upper_mz_limit 1650 \
+-product_lower_mz_limit 150 \
+-out /data/results/library/SSLibrary_target.TraML
+
+docker exec openswath OpenSwathAssayGenerator \
+-in /data/results/library/SpectrastStep2_consensus.mrm \
+-swath_windows_file /data/data_library/swathwindows.txt \
+-precursor_lower_mz_limit 350 \
+-precursor_upper_mz_limit 1650 \
+-product_lower_mz_limit 150 \
+-out /data/results/library/SSLibrary_target_6-6t_std.tsv
+
+docker exec openswath OpenSwathAssayGenerator \
+-in /data/results/library/SpectrastStep2_consensus.mrm \
+-swath_windows_file /data/data_library/swathwindows.txt \
+-precursor_lower_mz_limit 350 \
+-precursor_upper_mz_limit 1650 \
+-product_lower_mz_limit 150 \
+-enable_detection_unspecific_losses \
+-out /data/results/library/SSLibrary_target_6-6t_losses.tsv
+
+docker exec openswath OpenSwathAssayGenerator \
+-in /data/results/library/SpectrastStep2_consensus.mrm \
+-min_transitions 4 \
+-max_transitions 6 \
+-allowed_fragment_types b,y \
+-enable_detection_unspecific_losses \
+-precursor_lower_mz_limit 350 \
+-precursor_upper_mz_limit 1650 \
+-product_lower_mz_limit 150 \
+-swath_windows_file /data/data_library/swathwindows.txt \
+-out /data/results/library/SSLibrary_target_4-6t_losses.tsv
+
+docker exec openswath OpenSwathAssayGenerator \
+-in /data/results/library/SpectrastStep2_consensus.mrm \
+-min_transitions 4 \
+-max_transitions 24 \
+-allowed_fragment_types b,y \
+-enable_detection_unspecific_losses \
+-precursor_lower_mz_limit 350 \
+-precursor_upper_mz_limit 1650 \
+-product_lower_mz_limit 150 \
+-swath_windows_file /data/data_library/swathwindows.txt \
+-out /data/results/library/SSLibrary_target_4-24t_losses.tsv
+
+docker exec openswath OpenSwathAssayGenerator \
+-in /data/results/library/SpectrastStep2_consensus.mrm \
+-min_transitions 4 \
+-max_transitions 24 \
+-allowed_fragment_types b,y,x,z \
+-enable_detection_unspecific_losses \
+-precursor_lower_mz_limit 350 \
+-precursor_upper_mz_limit 1650 \
+-product_lower_mz_limit 150 \
+-swath_windows_file /data/data_library/swathwindows.txt \
+-out /data/results/library/SSLibrary_target_4-24t_losses_byxz.tsv
+
+## Classical pathway (5600, 400-1200 mz, b,y, 6-6t)
 # Convert to TraML, generate and append decoys and convert to .pqp
 docker exec openswath TargetedFileConverter \
 -in /data/results/library/SpectrastStep2_consensus.mrm \
 -out /data/results/library/SSLibrary_transitionlist_all.TraML
 
-# -in /data/results/library/SpectrastStep3.mrm \ #
-docker exec openswath OpenSwathAssayGenerator \
--in /data/results/library/SpectrastStep2_consensus.mrm \
--swath_windows_file /data/data_library/swathwindows_64vw_human_wheader.txt \
--out /data/results/library/SSLibrary_target.TraML
-
+# Decoy generation and conversion (only for the standard parameter library..)
 docker exec openswath OpenSwathDecoyGenerator \
 -in /data/results/library/SSLibrary_target.TraML \
 -out /data/results/library/SSLibrary_target_decoy.TraML \
@@ -121,7 +176,7 @@ docker exec openswath TargetedFileConverter \
 -in /data/results/library/SSLibrary_target_decoy.TraML \
 -out /data/results/library/SSLibrary_target_decoy.pqp
 
-# And for easy vieweing and processing in other tools to tsv
+# And for easy viewing and processing in other tools to tsv
 docker exec openswath TargetedFileConverter \
 -in /data/results/library/SSLibrary_target_decoy.TraML \
 -out /data/results/library/SSLibrary_target_decoy.tsv
