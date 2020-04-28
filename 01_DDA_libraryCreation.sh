@@ -12,7 +12,7 @@
 docker run hello-world
 
 # get the containerized tools
-docker pull biocontainers/diau-umpire # also contains comet, msgf+ and tpp
+docker pull biocontainers/diau-umpire:v2.1.2_cv4 # also contains comet, msgf+ and tpp
 docker pull openswath/openswath:0.1.2
 
 # remove containers that may exist in these names
@@ -23,7 +23,7 @@ docker rm ddalibcreate && \
 docker rm openswath
 
 # spawn containers on host machine
-docker run -u 0 -dit --name ddalibcreate -v $PWD/:/data biocontainers/dia-umpire
+docker run -u 0 -dit --name ddalibcreate -v $PWD/:/data biocontainers/dia-umpire:v2.1.2_cv4
 docker run -u 0 -dit --name openswath -v $PWD/:/data openswath/openswath:0.1.2
 
 # say hello!
