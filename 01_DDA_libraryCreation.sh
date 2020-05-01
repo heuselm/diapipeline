@@ -90,7 +90,7 @@ docker exec ddalibcreate spectrast -cNresults/library/SpectrastStep1_all \
 -cIHCD \
 -cf "Protein! ~ DECOY_" \
 -cP$ip_cutoff \
--c_IRT data_library/cirtkit.txt \
+-c_IRTdata_library/cirtkit.txt \
 -c_IRR results/library/iprophet.pep.xml
 
 # Build Consensus spectra
