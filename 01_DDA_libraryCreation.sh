@@ -41,7 +41,7 @@ chmod 777 data_library/library_fwd_with_decoys.fasta
 # Search via Comet
 mkdir results
 mkdir results/library
-for file in data_dda/*.mzXML; do \
+for file in data_dda/*.mzML; do \
 docker exec ddalibcreate comet -Pparams/comet.params $file ;done
 
 # copy result files to result folder
@@ -68,6 +68,9 @@ docker exec ddalibcreate ProteinProphet results/library/iprophet.pep.xml \
 results/library/iprophet.prot.xml IPROPHET
 
 # Perform Mayu FDR estimation
+docker exec ddalibcreate chmod 777 /usr/local/tpp/bin/Mayu.pl
+#Fix permission issue in container v2.1.2_cv4
+
 docker exec ddalibcreate Mayu.pl -A results/library/iprophet.pep.xml \
 -C data_library/library_fwd_with_decoys.fasta -E DECOY_ -I 2 -G 0.01 -H 100 \
 -M Mayu -verbose -P pepFDR=0.01:td && mv Mayu* results/library
@@ -78,21 +81,21 @@ docker exec ddalibcreate Mayu.pl -A results/library/iprophet.pep.xml \
 ip_cutoff=$(cat results/library/Mayu_psm_pepFDR0.01_td_1.07.csv \
 	| cut -d ',' -f5 | sort | head -n 1)
 $ip_cutoff
-echo $ip_cutoff > ip_cutoff.txt
+echo $ip_cutoff > results/library/ip_cutoff.txt
 
 # Spectrast Library generation
 ##############################
 # extract spectra from mzXML and filter based on cutoff and remove decoys
 docker exec ddalibcreate spectrast -cNresults/library/SpectrastStep1_all \
--cICID-QTOF \
+-cIHCD \
 -cf "Protein! ~ DECOY_" \
 -cP$ip_cutoff \
--c_IRTdata_library/cirtkit.txt \
+-c_IRT data_library/cirtkit.txt \
 -c_IRR results/library/iprophet.pep.xml
 
 # Build Consensus spectra
 docker exec ddalibcreate spectrast -cNresults/library/SpectrastStep2_consensus \
--cICID-QTOF -cf'Protein!~DECOY' \
+-cIHCD -cf'Protein!~DECOY' \
 -cAC -cM results/library/SpectrastStep1_all.splib
 
 # Legacy Script: Spectrast2Tsv:
