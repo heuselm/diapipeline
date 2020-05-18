@@ -47,9 +47,9 @@ require_variable_mod = 0
 # ion trap ms/ms:  1.0005 tolerance, 0.4 offset (mono masses), theoretical_fragment_ions = 1
 # high res ms/ms:    0.02 tolerance, 0.0 offset (mono masses), theoretical_fragment_ions = 0
 #
-fragment_bin_tol = 0.15              # binning to use on fragment ions
-fragment_bin_offset = 0.4              # offset position to start the binning (0.0 to 1.0)
-theoretical_fragment_ions = 1          # 0=use flanking peaks, 1=M peak only
+fragment_bin_tol = 0.02              # binning to use on fragment ions
+fragment_bin_offset = 0.0              # offset position to start the binning (0.0 to 1.0)
+theoretical_fragment_ions = 0          # 0=use flanking peaks, 1=M peak only
 use_A_ions = 0
 use_B_ions = 1
 use_C_ions = 0
@@ -139,7 +139,7 @@ add_Y_tyrosine = 0.0000                # added to Y - avg. 163.0633, mono. 163.0
 add_W_tryptophan = 0.0000              # added to W - avg. 186.0793, mono. 186.07931
 add_B_user_amino_acid = 0.0000         # added to B - avg.   0.0000, mono.   0.00000
 add_J_user_amino_acid = 0.0000         # added to J - avg.   0.0000, mono.   0.00000
-add_U_user_amino_acid = 0.0000         # added to U - avg.   0.0000, mono.   0.00000
+# add_U_user_amino_acid = 0.0000         # added to U - avg.   0.0000, mono.   0.00000
 add_X_user_amino_acid = 0.0000         # added to X - avg.   0.0000, mono.   0.00000
 add_Z_user_amino_acid = 0.0000         # added to Z - avg.   0.0000, mono.   0.00000
 
