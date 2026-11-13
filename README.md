@@ -1,64 +1,80 @@
 # diapipeline
-Targeted analysis of DIA mass spectrometry data
 
-# Prep: Get docker and software in containers
-- Requirement: Working docker installation
-- e.g. https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-16-04#step-1-%E2%80%94-installing-docker
+A scaffold for **containerized, library-based DIA/SWATH-MS analysis**: build a spectral
+(peptide query parameter) library from DDA data, then query that library in DIA data with
+the [OpenSWATH](http://openswath.org/) toolchain. All tools run in Docker, so the only
+host requirement is a working Docker installation.
 
-check if it's working..
-```docker run hello-world```
+```
+DDA mzXML ──► Comet ──► PeptideProphet / iProphet ──► Mayu (FDR) ──► SpectraST ──► OpenSwathAssayGenerator
+                                                                                    + DecoyGenerator
+                                                                                          │
+                                                                                   assay library (.pqp)
+                                                                                          │
+DIA mzXML ─────────────────────────────────────────► OpenSwathWorkflow ──► PyProphet ──► TRIC alignment
+                                                                                          │
+                                                                              quantitative peptide/protein matrix
+```
 
-get the containerized tools
-```docker pull biocontainers/diau-umpire```
-```docker pull openswath/openswath:0.1.2```
+## Repository layout
 
-# Step 01: Build peptide query parameter library from DDA-MS files (mzXML), script 01_DDA_libraryCreation.sh
+| Path | Content |
+|---|---|
+| `01_DDA_libraryCreation.sh` | Step 1: DDA search, statistical validation, library generation |
+| `02_OpenSwathJumboProphetTric.sh` | Step 2: OpenSWATH extraction, global PyProphet scoring, TRIC |
+| `dockers/` | Dockerfiles for the OpenSWATH and DIA-Umpire images |
+| `params/` | Comet parameter sets (QE / TripleTOF / QTOF, tryptic / semitryptic, TMT) |
+| `data_library/` | Default human SwissProt FASTA (+decoys), iRT / CiRT kits, SWATH window schemes |
 
-1.2 cd diapipeline
+## Quick start
 
-1.3 mkdir data_dda
+```bash
+# 0. prerequisites
+docker run hello-world
+docker pull openswath/openswath:0.1.2
+docker pull biocontainers/dia-umpire
 
-1.4 cp (MYDDADATA*.mzXML) data_dda/
+git clone https://github.com/heuselm/diapipeline && cd diapipeline
 
-1.5.
+# 1. library from DDA data
+mkdir data_dda && cp /path/to/*.mzXML data_dda/
+./01_DDA_libraryCreation.sh          # output: results/library/
 
-  a Wanna use standard settings and human swissprot db? -> ./01_DDA_libraryCreation.sh
-  
-  b Wanna use a different fasta protein sequence database?
-  
-    0 your db must contain DECOY_ prefixed decoy sequences
-  
-    1 cp /myfasta/xyz.fasta data_library
-  
-    2 mv data_library/library_fwd_with_decoys.fasta data_library/library_fwd_with_decoys_backup.fasta
-  
-    3 cp data_library/xyz.fasta data_library/library_fwd_with_decoys.fasta
-  
-    (Alternatively you can also edit the params/comet.params file to point to your fasta, but it must be in the diapipeline folder for the dockers to see it)
-  
-    4 -> ./01_DDA_libraryCreation.sh
-  c Wanna use different parameters for the comet searches? Check out the params folder & edit params/comet.params
-  
-loading spectra -> good. Anything else -> not good.
+# 2. query the library in DIA data
+mkdir data_dia && cp /path/to/*.mzXML data_dia/
+# step through 02_OpenSwathJumboProphetTric.sh (see note below)
+```
 
-1.6 Check output in results/library!
+### Customizing
 
-# Step 02: Query peptide abundance in DIA-MS files (mzXML), script 02_OpenSwathJumboProphetTric.sh
-## Note: Pyprophet cannot be run with docker exec; it is required to attach to the docker container and issue the commands within the docker container's shell..
+- **Other FASTA:** must contain `DECOY_`-prefixed decoys and live inside the repo folder
+  (Docker mounts it). Replace `data_library/library_fwd_with_decoys.fasta`, or point
+  `params/comet.params` at your file.
+- **Search settings:** pick or edit a parameter set in `params/`.
+- **SWATH windows:** choose the matching scheme in `data_library/swathwindows_*.txt`.
 
-2.1 mkdir data_dia
+### Note on step 2
 
-2.2 cp (MYDIADATA*.mzXML) data_dia/
+PyProphet is not run via `docker exec`; attach to the container and issue the commands
+in script 02 from its shell.
 
-2.3 (Manually) Go through the steps in script 02_, attach to docker and issue the commands from within..
+The workflow learns **one global scoring model per dataset** ("jumbo" PyProphet), which
+stabilizes scoring across heterogeneous sample sets such as AP-MS baits vs. controls or
+fractionated samples (e.g. SEC-SWATH-MS).
 
-## Note: This workflow is based on learning one global scoring function for a given dataset. That's good to obtain stabilized scoring across heterogeneous sample sets (e.g. AP-MS baits vs. controls, fractionated samples such as SEC-SWATH-MS)
+## Status
 
-For details on parameterization, check out the original papers and docs..
-http://openswath.org/
+A scaffold from 2017–2020 OpenSWATH work, kept for reference and reuse. Tool versions are
+pinned to the containers above; for current versions see
+[OpenSWATH](http://openswath.org/) and the
+[OpenSWATH Snakemake workflows](https://github.com/OpenSWATH/workflows).
 
-Congrats, you ran the SwathPipeline!
-Check output in results folder
+## References
 
-Inspired by & thanks to http://openswath.org/en/latest/docs/docker.html
-& https://github.com/OpenSWATH/workflows
+- Röst et al. (2014) OpenSWATH. *Nat Biotechnol* 32:219–223.
+- Rosenberger et al. (2017) Statistical control of peptide and protein error rates in
+  large-scale targeted DIA analyses. *Nat Methods* 14:921–927.
+- Röst et al. (2016) TRIC: alignment of targeted DIA-MS data. *Nat Methods* 13:777–783.
+
+---
+<sub>README optimized with Claude Opus 5.5.</sub>
